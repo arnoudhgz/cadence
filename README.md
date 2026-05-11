@@ -38,16 +38,16 @@ Two options. Homebrew is the easier one if you already have it.
 
 ```sh
 brew tap arnoudhgz/cadence
-brew install --cask --no-quarantine cadence
+brew install --cask cadence
 ```
 
 Or as a single one-liner:
 
 ```sh
-brew install --cask --no-quarantine arnoudhgz/cadence/cadence
+brew install --cask arnoudhgz/cadence/cadence
 ```
 
-The `--no-quarantine` flag is needed because Cadence isn't yet Apple-notarized — it tells Homebrew not to mark the bundle as quarantined, so first launch works without the Gatekeeper bypass dance. Once a Developer ID-signed build ships, that flag becomes unnecessary.
+That's it — first launch works straight from the Dock. Cadence isn't yet Apple-notarized, but the cask handles the Gatekeeper bypass for you automatically (it strips the macOS quarantine attribute in a `postflight` step right after install), so you don't need to do the right-click → Open dance.
 
 To update later:
 
