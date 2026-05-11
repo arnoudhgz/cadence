@@ -1,0 +1,45 @@
+name: Cadence
+
+options:
+  deploymentTarget:
+    macOS: "14.0"
+  bundleIdPrefix: com.arnoudhgz
+  createIntermediateGroups: true
+  generateEmptyDirectories: true
+  developmentLanguage: en
+  groupSortPosition: top
+  fileTypes:
+    js:
+      buildPhase: resources
+
+settings:
+  base:
+    SWIFT_VERSION: "5.0"
+    MARKETING_VERSION: "0.1.0"
+    CURRENT_PROJECT_VERSION: "1"
+    MACOSX_DEPLOYMENT_TARGET: "14.0"
+    PRODUCT_NAME: Cadence
+    CODE_SIGN_STYLE: Automatic
+    CODE_SIGN_IDENTITY: "-"
+    DEVELOPMENT_TEAM: ""
+    ENABLE_HARDENED_RUNTIME: NO
+    COMBINE_HIDPI_IMAGES: YES
+
+targets:
+  Cadence:
+    type: application
+    platform: macOS
+    sources:
+      - path: Cadence
+        excludes:
+          - "Info.plist"
+          - "Cadence.entitlements"
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.arnoudhgz.Cadence
+        INFOPLIST_FILE: Cadence/Info.plist
+        CODE_SIGN_ENTITLEMENTS: Cadence/Cadence.entitlements
+        GENERATE_INFOPLIST_FILE: NO
+    dependencies:
+      - sdk: WebKit.framework
+      - sdk: MediaPlayer.framework
