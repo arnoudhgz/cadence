@@ -32,19 +32,52 @@ There's no official YouTube Music app for macOS. Browser tabs get killed, buried
 
 ## Install
 
+Two options. Homebrew is the easier one if you already have it.
+
+### Option A — Homebrew (recommended)
+
+```sh
+brew tap arnoudhgz/cadence
+brew install --cask --no-quarantine cadence
+```
+
+Or as a single one-liner:
+
+```sh
+brew install --cask --no-quarantine arnoudhgz/cadence/cadence
+```
+
+The `--no-quarantine` flag is needed because Cadence isn't yet Apple-notarized — it tells Homebrew not to mark the bundle as quarantined, so first launch works without the Gatekeeper bypass dance. Once a Developer ID-signed build ships, that flag becomes unnecessary.
+
+To update later:
+
+```sh
+brew upgrade --cask cadence
+```
+
+To uninstall (add `--zap` to also wipe login cookies, cache, preferences):
+
+```sh
+brew uninstall --cask cadence
+```
+
+The tap source lives at [arnoudhgz/homebrew-cadence](https://github.com/arnoudhgz/homebrew-cadence).
+
+### Option B — Manual download
+
 Cadence is distributed as a `.zip` from GitHub Releases. It is **not signed with an Apple Developer ID** (yet), so the first launch requires one extra click to get past macOS Gatekeeper.
 
-### Step 1 — Download
+#### Step 1 — Download
 
 Go to the [latest release](https://github.com/arnoudhgz/cadence/releases/latest) and download `Cadence.zip` from the *Assets* section.
 
-### Step 2 — Move to Applications
+#### Step 2 — Move to Applications
 
 1. Open your **Downloads** folder.
 2. Double-click `Cadence.zip` to unzip it — you should now see `Cadence.app`.
 3. Drag `Cadence.app` into your **Applications** folder.
 
-### Step 3 — First launch (one-time Gatekeeper bypass)
+#### Step 3 — First launch (one-time Gatekeeper bypass)
 
 Because the app is unsigned, **double-clicking `Cadence.app` will be blocked the first time**. macOS shows a dialog like *"Cadence cannot be opened because Apple cannot check it for malicious software"*. The workaround takes 5 seconds and is only needed once:
 
@@ -55,7 +88,7 @@ Because the app is unsigned, **double-clicking `Cadence.app` will be blocked the
 
 > If you accidentally double-clicked first and saw the *"cannot be opened"* dialog with only a "Move to Bin" button, just dismiss it and then follow the right-click → Open path above. macOS will remember your choice.
 
-### Step 4 — Log in
+#### Step 4 — Log in
 
 On first launch, Cadence opens `music.youtube.com` and asks you to sign in with your Google account. Your login persists across launches.
 
