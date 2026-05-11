@@ -22,6 +22,7 @@ There's no official YouTube Music app for macOS. Browser tabs get killed, buried
 - 🔐 Stays logged in across launches (cookies persist via `WKWebsiteDataStore`)
 - 🚫 No ad injection, no scraping, no API misuse — works best with **YouTube Music Premium** for an ad-free experience
 - 🎨 Built with SwiftUI, macOS 14+
+- 💻 Universal binary — runs natively on Apple Silicon **and** Intel Macs
 
 ## Requirements
 
