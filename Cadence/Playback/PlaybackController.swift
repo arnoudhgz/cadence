@@ -95,6 +95,15 @@ final class PlaybackController {
         evaluate("window.cadenceBridge && window.cadenceBridge.seekTo(\(seconds))")
     }
 
+    /// Toggles whether the JS bridge emits periodic state. Set false when the
+    /// host window is occluded — bridge keeps responding to media commands but
+    /// stops the timeupdate / metadata-poll telemetry. Sets window.__cadenceActive
+    /// directly so the value sticks even if the bridge hasn't finished loading.
+    func setActive(_ active: Bool) {
+        let value = active ? "true" : "false"
+        evaluate("window.__cadenceActive = \(value); window.cadenceBridge && window.cadenceBridge.setActive(\(value));")
+    }
+
     private func evaluate(_ js: String) {
         webView.evaluateJavaScript(js) { _, error in
             if let error = error {
