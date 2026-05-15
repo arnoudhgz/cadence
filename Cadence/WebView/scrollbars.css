@@ -4,31 +4,86 @@
  * macOS exposes a global "Show scrollbars" preference (Always / When scrolling
  * / Automatic). When set to "Always", WebKit renders the native ~15px white-
  * gray tracks inside the YT Music page — visually loud against the dark theme.
- * We override the pseudo-elements to a slim translucent style that works on
- * any background and respects both light- and dark-mode menubar/system tint.
+ * We override the pseudo-elements to a slim translucent style.
+ *
+ * !important is required: YT Music ships its own ::-webkit-scrollbar rules
+ * (especially on horizontal carousels) that load after our injection and
+ * would otherwise win on cascade. The CSS spec gives !important higher
+ * priority regardless of source order.
  */
 
 ::-webkit-scrollbar {
-    width: 10px;
-    height: 10px;
+    width: 10px !important;
+    height: 10px !important;
 }
 
 ::-webkit-scrollbar-track,
 ::-webkit-scrollbar-corner {
-    background: transparent;
+    background: transparent !important;
+    background-color: transparent !important;
+    border: 0 !important;
+    box-shadow: none !important;
+}
+
+/* Only the outermost (browser-level) scrollbar — the one attached to the
+   <html>/<body> document scroll — gets the title-bar colour behind its
+   thumb. Inner scrollbars (sidebar, carousels, etc.) keep the transparent
+   track from the rule above so they stay invisible against their hosts. */
+html::-webkit-scrollbar-track,
+body::-webkit-scrollbar-track {
+    background: #2D1B43 !important;
+    background-color: #2D1B43 !important;
 }
 
 ::-webkit-scrollbar-thumb {
-    background-color: rgba(255, 255, 255, 0.18);
-    border-radius: 5px;
-    border: 2px solid transparent;
-    background-clip: padding-box;
+    background-color: rgba(255, 255, 255, 0.18) !important;
+    border-radius: 5px !important;
+    border: 2px solid transparent !important;
+    background-clip: padding-box !important;
+    box-shadow: none !important;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-    background-color: rgba(255, 255, 255, 0.32);
+    background-color: rgba(255, 255, 255, 0.32) !important;
 }
 
 ::-webkit-scrollbar-thumb:active {
-    background-color: rgba(255, 255, 255, 0.45);
+    background-color: rgba(255, 255, 255, 0.45) !important;
+}
+
+::-webkit-scrollbar-button {
+    display: none !important;
+}
+
+/*
+ * YT Music's horizontal carousels render their own scroll-position indicator
+ * (a chunky light bar under each row of tiles) that is *not* a native
+ * scrollbar — it's a div with id="scroll-bar" inside the carousel-shelf
+ * renderer. It looks loud against the dark theme and the page already has
+ * left/right arrow buttons for navigation, so hide it.
+ */
+ytmusic-carousel-shelf-renderer #scroll-bar,
+ytmusic-carousel #scroll-bar,
+[is="ytmusic-carousel"] #scroll-bar,
+ytmusic-carousel .scroll-bar,
+ytmusic-carousel-shelf-renderer .scroll-bar {
+    display: none !important;
+}
+
+/* Also flatten any native horizontal scrollbar that slips through. */
+ytmusic-carousel ::-webkit-scrollbar:horizontal,
+ytmusic-carousel-shelf-renderer ::-webkit-scrollbar:horizontal {
+    height: 6px !important;
+}
+
+ytmusic-carousel ::-webkit-scrollbar-track:horizontal,
+ytmusic-carousel-shelf-renderer ::-webkit-scrollbar-track:horizontal {
+    background: transparent !important;
+    background-color: transparent !important;
+}
+
+ytmusic-carousel ::-webkit-scrollbar-thumb:horizontal,
+ytmusic-carousel-shelf-renderer ::-webkit-scrollbar-thumb:horizontal {
+    background-color: rgba(255, 255, 255, 0.16) !important;
+    border-radius: 3px !important;
 }
