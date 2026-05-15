@@ -6,6 +6,13 @@
     }
     window.__cadenceBridgeInstalled = true;
 
+    // When false, the bridge stops emitting periodic state and stops polling
+    // mediaSession metadata. Native flips this from NSWindow occlusion state.
+    // Defaults to true so behavior is unchanged before the native side wires up.
+    if (typeof window.__cadenceActive !== 'boolean') {
+        window.__cadenceActive = true;
+    }
+
     const native = window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.cadence;
 
     const post = (msg) => {
@@ -33,8 +40,15 @@
             return;
         }
         if (!video) return;
+        // Periodic (timeupdate) ticks are skipped when the window is occluded;
+        // Now Playing extrapolates elapsed from the PlaybackRate we already set.
+        // Forced emits (play/pause/seek/track-change/setActive(true)) always go through.
+        if (!force && !window.__cadenceActive) return;
         const now = Date.now();
-        if (!force && now - lastEmit < 1000) return;
+        // Throttle periodic emits to 5s — Now Playing handles smooth scrubbing
+        // via PlaybackRate, so we only need to resync if the user scrubs inside
+        // the web UI without firing a 'seeked' event.
+        if (!force && now - lastEmit < 5000) return;
         lastEmit = now;
 
         const meta = navigator.mediaSession && navigator.mediaSession.metadata;
@@ -89,10 +103,11 @@
 
     // -------- mediaSession metadata polling --------
     // YT Music updates navigator.mediaSession.metadata when the track changes.
-    // We poll for changes once per second and re-emit on change.
+    // We poll for changes once per second and re-emit on change. Skips entirely
+    // when there's no video yet or the window is occluded.
     let lastMetaSig = '';
     setInterval(() => {
-        if (!video) return;
+        if (!video || !window.__cadenceActive) return;
         const m = navigator.mediaSession && navigator.mediaSession.metadata;
         if (!m) return;
         const art = m.artwork && m.artwork.length ? m.artwork[m.artwork.length - 1].src : '';
@@ -196,6 +211,14 @@
             if (video && isFinite(seconds)) {
                 video.currentTime = seconds;
             }
+        },
+        setActive(active) {
+            const next = !!active;
+            if (window.__cadenceActive === next) return;
+            window.__cadenceActive = next;
+            // On wake, resync once so Now Playing reflects whatever happened
+            // while we were quiet (e.g. a track change via media keys).
+            if (next) emitState(true);
         },
         // Debug helper: returns labels of all player-bar buttons so we can see
         // exactly what YT Music is rendering on this machine.
