@@ -11,6 +11,8 @@ options:
   fileTypes:
     js:
       buildPhase: resources
+    css:
+      buildPhase: resources
 
 settings:
   base:

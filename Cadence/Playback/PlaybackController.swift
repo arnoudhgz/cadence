@@ -23,6 +23,31 @@ final class PlaybackController {
         self.coordinator = coordinator
         contentController.add(coordinator, name: "cadence")
 
+        // Scrollbar skin — injected at documentStart so it applies before YT
+        // Music first paints. Sub-frames included so any iframes (e.g. account
+        // chooser) get the same treatment.
+        if let url = Bundle.main.url(forResource: "scrollbars", withExtension: "css"),
+           let css = try? String(contentsOf: url, encoding: .utf8) {
+            let escaped = css
+                .replacingOccurrences(of: "\\", with: "\\\\")
+                .replacingOccurrences(of: "`", with: "\\`")
+                .replacingOccurrences(of: "$", with: "\\$")
+            let source = """
+            (function () {
+                var s = document.createElement('style');
+                s.setAttribute('data-cadence', 'scrollbars');
+                s.textContent = `\(escaped)`;
+                (document.head || document.documentElement).appendChild(s);
+            })();
+            """
+            let script = WKUserScript(
+                source: source,
+                injectionTime: .atDocumentStart,
+                forMainFrameOnly: false,
+            )
+            contentController.addUserScript(script)
+        }
+
         if let url = Bundle.main.url(forResource: "bridge", withExtension: "js"),
            let source = try? String(contentsOf: url, encoding: .utf8) {
             let script = WKUserScript(
