@@ -11,6 +11,27 @@ struct ContentView: View {
             .background(WindowAccessor { window in
                 attachOcclusionObserver(to: window)
             })
+            .toolbar {
+                ToolbarItemGroup(placement: .navigation) {
+                    Button {
+                        controller.goBack()
+                    } label: {
+                        Image(systemName: "chevron.backward")
+                    }
+                    .disabled(!controller.canGoBack)
+                    .keyboardShortcut("[", modifiers: .command)
+                    .help("Back")
+
+                    Button {
+                        controller.goForward()
+                    } label: {
+                        Image(systemName: "chevron.forward")
+                    }
+                    .disabled(!controller.canGoForward)
+                    .keyboardShortcut("]", modifiers: .command)
+                    .help("Forward")
+                }
+            }
     }
 
     private func attachOcclusionObserver(to window: NSWindow) {

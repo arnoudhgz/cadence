@@ -8,6 +8,11 @@ final class PlaybackController {
     @ObservationIgnored let webView: WKWebView
     @ObservationIgnored private let state: PlaybackState
     @ObservationIgnored private let coordinator: WebViewCoordinator
+    @ObservationIgnored private var backObserver: NSKeyValueObservation?
+    @ObservationIgnored private var forwardObserver: NSKeyValueObservation?
+
+    var canGoBack: Bool = false
+    var canGoForward: Bool = false
 
     init(state: PlaybackState) {
         self.state = state
@@ -61,13 +66,37 @@ final class PlaybackController {
         let webView = WKWebView(frame: .zero, configuration: config)
         webView.customUserAgent = Self.desktopSafariUA
         webView.navigationDelegate = coordinator
+        webView.allowsBackForwardNavigationGestures = true
         #if DEBUG
         webView.isInspectable = true
         #endif
         self.webView = webView
 
+        backObserver = webView.observe(\.canGoBack, options: [.initial, .new]) { [weak self] webView, _ in
+            Task { @MainActor in
+                self?.canGoBack = webView.canGoBack
+            }
+        }
+        forwardObserver = webView.observe(\.canGoForward, options: [.initial, .new]) { [weak self] webView, _ in
+            Task { @MainActor in
+                self?.canGoForward = webView.canGoForward
+            }
+        }
+
         if let url = URL(string: "https://music.youtube.com") {
             webView.load(URLRequest(url: url))
+        }
+    }
+
+    func goBack() {
+        if webView.canGoBack {
+            webView.goBack()
+        }
+    }
+
+    func goForward() {
+        if webView.canGoForward {
+            webView.goForward()
         }
     }
 
