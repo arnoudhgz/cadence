@@ -47,8 +47,19 @@ struct CadenceApp: App {
                 .environment(controller)
         } label: {
             CadenceMenuIcon()
+                .help(menuBarTooltip)
         }
         .menuBarExtraStyle(.window)
+    }
+
+    private var menuBarTooltip: String {
+        if state.title.isEmpty {
+            return "Cadence"
+        }
+        if state.artist.isEmpty {
+            return state.title
+        }
+        return "\(state.title) — \(state.artist)"
     }
 }
 

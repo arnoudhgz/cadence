@@ -3,11 +3,16 @@ import AppKit
 
 struct ContentView: View {
     @Environment(PlaybackController.self) private var controller
+    @Environment(PlaybackState.self) private var state
     @State private var occlusionObserver: WindowOcclusionObserver?
 
     var body: some View {
         WebViewContainer(webView: controller.webView)
-            .ignoresSafeArea()
+            .ignoresSafeArea(.container, edges: [.leading, .trailing, .bottom])
+            .navigationTitle(windowTitle)
+            .toolbarBackground(Self.titleBarColor, for: .windowToolbar)
+            .toolbarBackground(.visible, for: .windowToolbar)
+            .toolbarColorScheme(.dark, for: .windowToolbar)
             .background(WindowAccessor { window in
                 attachOcclusionObserver(to: window)
             })
@@ -40,6 +45,21 @@ struct ContentView: View {
             controller.setActive(visible)
         }
     }
+
+    private var windowTitle: String {
+        if state.title.isEmpty {
+            return "Cadence"
+        }
+        if state.artist.isEmpty {
+            return state.title
+        }
+        return "\(state.title) — \(state.artist)"
+    }
+
+    /// Deep synthwave purple sampled from the Cadence brand icon — sits between
+    /// pure black and the YT Music near-black so the title bar reads as chrome
+    /// rather than as part of the content.
+    private static let titleBarColor = Color(red: 0.18, green: 0.11, blue: 0.26)
 }
 
 /// Briefly bridges SwiftUI to the underlying NSWindow so we can attach
