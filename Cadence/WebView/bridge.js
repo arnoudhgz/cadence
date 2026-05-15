@@ -19,10 +19,19 @@
     // -------- video element handling --------
     let video = null;
     let lastEmit = 0;
+    let videoObserver = null;
 
     const findVideo = () => document.querySelector('video');
 
     const emitState = (force) => {
+        // YT Music can swap the <video> element on page transitions. If our
+        // reference has been detached from the DOM, drop it and rearm the
+        // observer so we re-attach on the next mutation.
+        if (video && !video.isConnected) {
+            video = null;
+            armVideoObserver();
+            return;
+        }
         if (!video) return;
         const now = Date.now();
         if (!force && now - lastEmit < 1000) return;
@@ -53,6 +62,12 @@
         video.addEventListener('seeked', () => emitState(true));
         video.addEventListener('loadedmetadata', () => emitState(true));
         video.addEventListener('timeupdate', () => emitState(false));
+        // Once we have a live <video>, stop watching the full document subtree.
+        // YT Music mutates it constantly; the observer was costing idle CPU.
+        if (videoObserver) {
+            videoObserver.disconnect();
+            videoObserver = null;
+        }
         emitState(true);
     };
 
@@ -63,8 +78,13 @@
         }
     };
 
-    const videoObserver = new MutationObserver(tryAttachVideo);
-    videoObserver.observe(document.documentElement, { childList: true, subtree: true });
+    const armVideoObserver = () => {
+        if (videoObserver) return;
+        videoObserver = new MutationObserver(tryAttachVideo);
+        videoObserver.observe(document.documentElement, { childList: true, subtree: true });
+    };
+
+    armVideoObserver();
     tryAttachVideo();
 
     // -------- mediaSession metadata polling --------
