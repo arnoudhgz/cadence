@@ -28,29 +28,13 @@ final class PlaybackController {
         self.coordinator = coordinator
         contentController.add(coordinator, name: "cadence")
 
-        // Scrollbar skin — injected at documentStart so it applies before YT
+        // CSS skin layers — injected at documentStart so they apply before YT
         // Music first paints. Sub-frames included so any iframes (e.g. account
         // chooser) get the same treatment.
-        if let url = Bundle.main.url(forResource: "scrollbars", withExtension: "css"),
-           let css = try? String(contentsOf: url, encoding: .utf8) {
-            let escaped = css
-                .replacingOccurrences(of: "\\", with: "\\\\")
-                .replacingOccurrences(of: "`", with: "\\`")
-                .replacingOccurrences(of: "$", with: "\\$")
-            let source = """
-            (function () {
-                var s = document.createElement('style');
-                s.setAttribute('data-cadence', 'scrollbars');
-                s.textContent = `\(escaped)`;
-                (document.head || document.documentElement).appendChild(s);
-            })();
-            """
-            let script = WKUserScript(
-                source: source,
-                injectionTime: .atDocumentStart,
-                forMainFrameOnly: false,
-            )
-            contentController.addUserScript(script)
+        for resource in ["scrollbars", "playerbar"] {
+            if let script = Self.cssUserScript(named: resource) {
+                contentController.addUserScript(script)
+            }
         }
 
         if let url = Bundle.main.url(forResource: "bridge", withExtension: "js"),
@@ -141,6 +125,32 @@ final class PlaybackController {
                 #endif
             }
         }
+    }
+
+    /// Loads a bundled .css resource and wraps it in a WKUserScript that
+    /// appends a <style> element to the document head at documentStart.
+    private static func cssUserScript(named name: String) -> WKUserScript? {
+        guard let url = Bundle.main.url(forResource: name, withExtension: "css"),
+              let css = try? String(contentsOf: url, encoding: .utf8) else {
+            return nil
+        }
+        let escaped = css
+            .replacingOccurrences(of: "\\", with: "\\\\")
+            .replacingOccurrences(of: "`", with: "\\`")
+            .replacingOccurrences(of: "$", with: "\\$")
+        let source = """
+        (function () {
+            var s = document.createElement('style');
+            s.setAttribute('data-cadence', '\(name)');
+            s.textContent = `\(escaped)`;
+            (document.head || document.documentElement).appendChild(s);
+        })();
+        """
+        return WKUserScript(
+            source: source,
+            injectionTime: .atDocumentStart,
+            forMainFrameOnly: false,
+        )
     }
 
     private static let desktopSafariUA = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.5 Safari/605.1.15"

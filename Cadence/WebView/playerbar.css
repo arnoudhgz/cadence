@@ -1,0 +1,63 @@
+/*
+ * Cadence — skin the YT Music bottom player bar to match Cadence's chrome.
+ *
+ * - Background: solid deep purple (#2D1B43), same colour as the macOS
+ *   title-bar toolbar background so the window reads as one consistent
+ *   chrome top + bottom.
+ * - Layout: position:fixed full viewport width with an aggressive
+ *   z-index so we sit above the YT Music content scrollbar.
+ * - Buttons: every SVG glyph inside the bar gets the neon cyan + outer
+ *   glow treatment, including the like/dislike pair which YT Music wraps
+ *   in a separate renderer node.
+ */
+
+ytmusic-player-bar {
+    background: #2D1B43 !important;
+    background-color: #2D1B43 !important;
+
+    position: fixed !important;
+    bottom: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    width: auto !important;
+    max-width: none !important;
+    box-sizing: border-box !important;
+    z-index: 9999 !important;
+    /* Bar visually covers the full width — including the area behind the
+       native vertical scrollbar — so YT Music's own player-bar-background
+       doesn't leave a grey strip on the right. Internal padding keeps the
+       trailing icon clear of the scrollbar. */
+    padding-right: 14px !important;
+}
+
+/* Note: we intentionally don't add padding-bottom to any container here.
+   Earlier attempts shifted the YT Music navbar/sidebar; YT Music's own
+   layout already reserves space for its native player bar, which is
+   enough room for ours too. */
+
+/*
+ * Every icon inside the player bar → neon cyan with outer glow.
+ * `ytmusic-player-bar svg *` is intentionally broad because YT Music
+ * hosts its bottom-bar SVGs inside many different wrapper components
+ * (tp-yt-paper-icon-button, yt-button-shape, ytmusic-like-button-renderer,
+ * yt-icon, raw inline svg). The selector is safely scoped to the player
+ * bar tag, so the navbar / sidebar logo is untouched.
+ */
+ytmusic-player-bar,
+ytmusic-player-bar tp-yt-paper-icon-button,
+ytmusic-player-bar yt-icon,
+ytmusic-player-bar yt-button-shape {
+    color: #1FE0F5 !important;
+}
+
+ytmusic-player-bar svg,
+ytmusic-player-bar svg * {
+    fill: #1FE0F5 !important;
+    color: #1FE0F5 !important;
+}
+
+ytmusic-player-bar tp-yt-paper-icon-button,
+ytmusic-player-bar yt-icon,
+ytmusic-player-bar yt-button-shape {
+    filter: drop-shadow(0 0 3px rgba(31, 224, 245, 0.6));
+}
