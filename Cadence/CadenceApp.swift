@@ -46,7 +46,7 @@ struct CadenceApp: App {
                 .environment(state)
                 .environment(controller)
         } label: {
-            Image(systemName: state.isPlaying ? "play.circle.fill" : "music.note")
+            CadenceMenuIcon()
         }
         .menuBarExtraStyle(.window)
     }
