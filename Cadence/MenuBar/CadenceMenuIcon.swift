@@ -1,46 +1,67 @@
 import SwiftUI
+import AppKit
 
 /// Brand icon for the menubar: a "C" arc enclosing a play triangle.
-/// Drawn vector-style so it stays crisp at 1x and 2x, and inherits the
-/// menubar tint via .primary (white on dark menubar, black on light).
+/// Drawn as a template NSImage (single-channel alpha) so AppKit auto-tints
+/// it to match the current menubar appearance (white on dark, black on light).
+/// SwiftUI Canvas does not reliably render inside a MenuBarExtra label —
+/// AppKit needs an NSImage with isTemplate=true to do the tinting.
 struct CadenceMenuIcon: View {
     var body: some View {
-        Canvas { context, size in
-            let side = min(size.width, size.height)
-            let cx = size.width / 2
-            let cy = size.height / 2
-            let stroke = side * 0.16
-            let arcRadius = side * 0.42 - stroke / 2
+        Image(nsImage: Self.image)
+    }
 
-            // C: arc with a gap on the right where the play triangle peeks out.
-            var arc = Path()
-            arc.addArc(
-                center: CGPoint(x: cx, y: cy),
+    private static let image: NSImage = {
+        let size = NSSize(width: 18, height: 18)
+        let image = NSImage(size: size, flipped: false) { rect in
+            let side = min(rect.width, rect.height)
+            let cx = rect.midX
+            let cy = rect.midY
+
+            // Geometry derived from icon-source.png: C mouth-on-right with
+            // a play triangle centered inside. Inner clearance is anchored
+            // so adjusting stroke thickness grows the C outward, leaving the
+            // play triangle the same room inside.
+            let innerRadius = side * 0.30
+            let stroke = side * 0.16
+            let arcRadius = innerRadius + stroke / 2
+
+            NSColor.black.setStroke()
+            NSColor.black.setFill()
+
+            // C arc — endpoints at ±45° (mouth on right ≈90° gap), traversing
+            // the left half via 180°. With NSBezierPath, going from +45°
+            // counter-clockwise (clockwise:false) lands at -45° after the
+            // long way through 90° → 180° → 270°.
+            let arcPath = NSBezierPath()
+            arcPath.appendArc(
+                withCenter: NSPoint(x: cx, y: cy),
                 radius: arcRadius,
-                startAngle: .degrees(-145),
-                endAngle: .degrees(145),
+                startAngle: 45,
+                endAngle: -45,
                 clockwise: false,
             )
-            context.stroke(
-                arc,
-                with: .color(.primary),
-                style: StrokeStyle(lineWidth: stroke, lineCap: .round),
-            )
+            arcPath.lineWidth = stroke
+            arcPath.lineCapStyle = .round
+            arcPath.stroke()
 
-            // Play triangle, optically centered (small nudge left to balance the
-            // visual weight of the C's opening on the right).
-            let triHeight = side * 0.42
+            // Play triangle — sits inside the C with a slight right-bias so
+            // the right tip points into (but stops short of) the mouth.
+            let triHeight = side * 0.32
             let triWidth = triHeight * 0.86
-            let triCenterX = cx - side * 0.02
-            var tri = Path()
-            tri.move(to: CGPoint(x: triCenterX - triWidth / 2, y: cy - triHeight / 2))
-            tri.addLine(to: CGPoint(x: triCenterX - triWidth / 2, y: cy + triHeight / 2))
-            tri.addLine(to: CGPoint(x: triCenterX + triWidth / 2, y: cy))
-            tri.closeSubpath()
-            context.fill(tri, with: .color(.primary))
+            let triCenterX = cx + side * 0.05
+            let triPath = NSBezierPath()
+            triPath.move(to: NSPoint(x: triCenterX - triWidth / 2, y: cy + triHeight / 2))
+            triPath.line(to: NSPoint(x: triCenterX - triWidth / 2, y: cy - triHeight / 2))
+            triPath.line(to: NSPoint(x: triCenterX + triWidth / 2, y: cy))
+            triPath.close()
+            triPath.fill()
+
+            return true
         }
-        .frame(width: 18, height: 18)
-    }
+        image.isTemplate = true
+        return image
+    }()
 }
 
 #Preview {
